@@ -50,20 +50,13 @@ class Robot
   def pick_up(item)
     if is_a_weapon?(item)
       self.equipped_weapon = item
-    else
-      unless items_at_capacity?
-        @items << item if items_within_capacity?(item)
-      end
+    elsif within_capacity?
+      @items << item
     end
   end
 
   def items_weight
     @items.reduce(0) { |total_weight, item| total_weight + item.weight }
-  end
-
-  def wound(damage_received)
-    @health -= damage_received
-    @health = MIN_HEALTH if @health < MIN_HEALTH
   end
 
   def wound!(damage_received)
@@ -81,27 +74,15 @@ class Robot
     end
   end
 
-  def heal(regained_health)
-    @health += regained_health
-    @health = MAX_HEALTH if @health > MAX_HEALTH
-  end
-
   def heal!(regained_health)
     raise RobotAlreadyDeadError if dead?
     @health += regained_health
     @health = MAX_HEALTH if @health > MAX_HEALTH
   end
 
-  def attack(enemy)
-    if has_equipped_weapon?
-      self.equipped_weapon.hit(enemy)
-    else
-      enemy.wound(DEFAULT_DAMAGE)
-    end
-  end
-
   def attack!(enemy)
     raise UnattackableEnemyError if not_a_robot?(enemy)
+    return unless in_range?(enemy)
     if has_equipped_weapon?
       self.equipped_weapon.hit(enemy)
     else
@@ -137,11 +118,7 @@ class Robot
 
   private
 
-  def items_at_capacity?
-    items_weight == MAX_TOTAL_WEIGHT_OF_ITEMS
-  end
-
-  def items_within_capacity?(item)
+  def within_capacity?(item)
     items_weight + item.weight <= MAX_TOTAL_WEIGHT_OF_ITEMS
   end
 
@@ -176,6 +153,10 @@ class Robot
       top_right: [@position[0] + 1,@position[1] + 1],
       top_left: [@position[0] - 1,@position[1] + 1]
     }
+  end
+
+  def in_range?(enemy)
+    surrounding_coordinates.has_value?(enemy.position)
   end
 
 end

@@ -31,6 +31,7 @@ describe Robot do
 
     it "should attack an enemy that is a Robot" do
       enemy = Robot.new
+      allow(enemy).to receive(:position).and_return([1,0])
       expect(enemy).to receive(:wound).with(Robot::DEFAULT_DAMAGE)
       @robot.attack!(enemy)
     end
