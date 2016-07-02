@@ -10,7 +10,7 @@ describe "Robot" do
 
   describe "#scan" do
     it "should return the robots that are immediately next to its current position" do
-      expect(@robot2).to receive(:position).at_least(:once).and_return([-1,1])
+      expect(@robot2).to receive(:position).at_least(:once).and_return([-1,0])
       expect(@robot3).to receive(:position).at_least(:once).and_return([1,0])
       expect(@robot.scan.include?(@robot2)).to be true
       expect(@robot.scan.include?(@robot3)).to be true

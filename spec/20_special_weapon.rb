@@ -19,7 +19,7 @@ describe "Robot" do
     end
 
     it "should damage all robots in immediate surroundings by 30" do 
-      expect(@robot2).to receive(:position).at_least(:once).and_return([-1,1])
+      expect(@robot2).to receive(:position).at_least(:once).and_return([-1,0])
       expect(@robot3).to receive(:position).at_least(:once).and_return([1,0])
       @robot.attack!(@robot2)
       expect(@robot2.shield).to eq(Robot::MIN_SHIELD)
@@ -27,7 +27,7 @@ describe "Robot" do
     end
 
     it "should dispense the special weapon as it is only single use" do
-      expect(@robot2).to receive(:position).at_least(:once).and_return([-1,1])
+      expect(@robot2).to receive(:position).at_least(:once).and_return([-1,0])
       @robot.attack!(@robot2)
       expect(@robot.equipped_weapon).to be_nil
     end
