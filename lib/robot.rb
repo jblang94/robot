@@ -78,7 +78,7 @@ class Robot
     damage_remaining = damage_received
     if has_shield?
       damage_remaining = wound_shield!(damage_received)
-      return if damage_remaining <= 0
+      return if no_damage_remaining?(damage_remaining)
     end
     @health -= damage_remaining
     @health = MIN_HEALTH if below_min_health?
@@ -92,6 +92,7 @@ class Robot
 
   def attack!(enemy)
     raise UnattackableEnemyError if not_a_robot?(enemy)
+    raise RobotAlreadyDeadError if enemy_dead?(enemy)
     if has_equipped_weapon?
       attack_with_weapon!(enemy)
     else
@@ -130,6 +131,10 @@ class Robot
     health == MIN_HEALTH
   end
 
+  def enemy_dead?(enemy)
+    enemy.health == MIN_HEALTH
+  end
+
   def is_a_weapon?(item)
     item.is_a?(Weapon)
   end
@@ -148,6 +153,10 @@ class Robot
 
   def is_special_weapon?
     self.equipped_weapon.is_a?(SpecialWeapon)
+  end
+
+  def no_damage_remaining?(damage_remaining)
+    damage_remaining <= 0
   end
 
   def used_grenade?
