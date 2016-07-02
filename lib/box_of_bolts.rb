@@ -9,6 +9,6 @@ class BoxOfBolts < Item
   end
 
   def feed(robot)
-    robot.heal(PROVIDED_HEALTH)
+    robot.heal!(PROVIDED_HEALTH)
   end
 end

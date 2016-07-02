@@ -1,15 +1,12 @@
-class Grenade < Weapon
+class Grenade < RangedWeapon
 
   NAME = "Grenade"
-  WEIGHT = 125
-  DAMAGE = 80
+  WEIGHT = 40
+  DAMAGE = 15
+  RANGE = 2
 
   def initialize
-    super(NAME, WEIGHT, DAMAGE)
-  end
-
-  def hit(robot)
-    robot.wound!(@damage)
+    super(NAME, WEIGHT, DAMAGE, RANGE)
   end
 
 end

@@ -3,23 +3,24 @@ class Robot
   MAX_TOTAL_WEIGHT_OF_ITEMS = 250
   MAX_HEALTH = 100
   MIN_HEALTH = 0
+  AUTO_HEAL_LIMIT = 80
   MAX_SHIELD = 50
   MIN_SHIELD = 0
-  MAX_GRENADES = 1
+  NO_WEAPON = nil
   DEFAULT_DAMAGE = 5
+  DEFAULT_RANGE = 1
 
   @@robots = []
 
-  attr_reader :position, :items, :health, :shield, :grenades
+  attr_reader :position, :items, :health, :shield
   attr_accessor :equipped_weapon
 
   def initialize
     @position = [0,0]
     @items = []
     @health = MAX_HEALTH
-    @equipped_weapon = nil
+    @equipped_weapon = NO_WEAPON
     @shield = MAX_SHIELD
-    @grenades = MAX_GRENADES
     @@robots << self
   end
 
@@ -47,12 +48,20 @@ class Robot
     @position[1] -= 1
   end
 
+  def scan
+    surroundings_to_check = positions_from_offset(1)
+    scanning_results = []
+    surroundings_to_check.each_value { |position| scanning_results << self.class.in_position(position) }
+    scanning_results.flatten
+  end
+
   def pick_up(item)
     if is_a_weapon?(item)
       self.equipped_weapon = item
-    elsif within_capacity?
-      @items << item
+    elsif item.is_a?(BoxOfBolts)
+      return item.feed(self) if health <= AUTO_HEAL_LIMIT
     end
+      @items << item if within_capacity?(item)
   end
 
   def items_weight
@@ -82,11 +91,17 @@ class Robot
 
   def attack!(enemy)
     raise UnattackableEnemyError if not_a_robot?(enemy)
-    return unless in_range?(enemy)
     if has_equipped_weapon?
-      self.equipped_weapon.hit(enemy)
+      if is_special_weapon?
+        attack_with_special_weapon!(enemy)
+      else
+        if in_range?(enemy, self.equipped_weapon.range)
+          self.equipped_weapon.hit(enemy) 
+          self.equipped_weapon = NO_WEAPON if used_grenade?
+        end
+      end
     else
-      enemy.wound(DEFAULT_DAMAGE)
+      enemy.wound!(DEFAULT_DAMAGE) if in_range?(enemy, DEFAULT_RANGE)
     end
   end
 
@@ -95,35 +110,32 @@ class Robot
     @shield = MAX_SHIELD if @shield > MAX_SHIELD
   end
 
-  def scan
-    surrondings_to_check = surrounding_coordinates
-    scanning_results = []
-    scanning_results << self.class.in_position(surrondings_to_check[:top])
-    scanning_results << self.class.in_position(surrondings_to_check[:bottom])
-    scanning_results << self.class.in_position(surrondings_to_check[:right])
-    scanning_results << self.class.in_position(surrondings_to_check[:left])
-    scanning_results << self.class.in_position(surrondings_to_check[:bottom_right])
-    scanning_results << self.class.in_position(surrondings_to_check[:bottom_left])
-    scanning_results << self.class.in_position(surrondings_to_check[:top_left])
-    scanning_results << self.class.in_position(surrondings_to_check[:top_right])
-    scanning_results.flatten
-  end
-
-  def throw_grenade
-    return if already_used_grenade?
-    targets = self.scan
-    grenade = Grenade.new
-    targets.each { |target| grenade.hit(target) }
-  end
-
+  ######### => HELPER FUNCTIONS => ###########
   private
+
+  def attack_with_special_weapon!(targetted_enemy)
+    return unless in_range?(targetted_enemy, self.equipped_weapon.range)
+    enemies_in_range = scan
+    enemies_in_range.each { |enemy| self.equipped_weapon.hit(enemy) }
+    self.equipped_weapon = NO_WEAPON
+  end
+
+  # Returns an Array of Hashes which contain all of the positions within a given range
+  def coordinates_in_range(range)
+    coordinates = []
+    (1..range).each { |offset| coordinates << positions_from_offset(offset) }
+    coordinates
+  end
+
+  def in_range?(enemy, range)
+    (1..range).each do |offset|
+      return true if positions_from_offset(offset).has_value?(enemy.position)
+    end
+    false
+  end
 
   def within_capacity?(item)
     items_weight + item.weight <= MAX_TOTAL_WEIGHT_OF_ITEMS
-  end
-
-  def has_equipped_weapon?
-    !self.equipped_weapon.nil?
   end
 
   def is_a_weapon?(item)
@@ -131,32 +143,36 @@ class Robot
   end
 
   def dead?
-    health == 0
-  end
-
-  def already_used_grenade?
-    grenades == 0
+    health == MIN_HEALTH
   end
 
   def not_a_robot?(enemy)
     !enemy.is_a?(Robot)
   end
 
-  def surrounding_coordinates
-    {
-      top: [@position[0],@position[1] + 1],
-      bottom: [@position[0],@position[1] - 1],
-      right: [@position[0] + 1,@position[1]],
-      left: [@position[0] - 1,@position[1]],
-      bottom_right: [@position[0] + 1,@position[1] - 1],
-      bottom_left: [@position[0] - 1,@position[1] - 1],
-      top_right: [@position[0] + 1,@position[1] + 1],
-      top_left: [@position[0] - 1,@position[1] + 1]
-    }
+  def has_equipped_weapon?
+    self.equipped_weapon != NO_WEAPON
   end
 
-  def in_range?(enemy)
-    surrounding_coordinates.has_value?(enemy.position)
+  def is_special_weapon?
+    self.equipped_weapon.is_a?(SpecialWeapon)
+  end
+
+  def used_grenade?
+    self.equipped_weapon.is_a?(Grenade)
+  end
+
+  def positions_from_offset(offset)
+    {
+      top: [@position[0], @position[1] + offset],
+      bottom: [@position[0], @position[1] - offset],
+      right: [@position[0] + offset, @position[1]],
+      left: [@position[0] - offset, @position[1]],
+      bottom_right: [@position[0] + offset, @position[1] - offset],
+      bottom_left: [@position[0] - offset, @position[1] - offset],
+      top_right: [@position[0] + offset, @position[1] + offset],
+      top_left: [@position[0] - offset, @position[1] + offset]
+    }
   end
 
 end

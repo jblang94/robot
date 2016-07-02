@@ -9,7 +9,7 @@ describe Robot do
     @grenade = Grenade.new
   end
 
-  describe '#attack' do
+  describe '#attack!' do
     context "equipped with grenade" do
       before :each do
         @robot.equipped_weapon = @grenade
@@ -23,12 +23,12 @@ describe Robot do
         end
 
         it "is able to successfully wound the enemy" do
-          expect(@robot2).to receive(:wound)
-          @robot.attack(@robot2)
+          expect(@robot2).to receive(:wound!)
+          @robot.attack!(@robot2)
         end
 
         it "should dispense the weapon (can only use once)" do
-          @robot.attack(@robot2)
+          @robot.attack!(@robot2)
           expect(@robot.equipped_weapon).to be_nil
         end
       end
@@ -42,8 +42,8 @@ describe Robot do
         end
 
         it "is NOT able to successfully wound the enemy" do
-          expect(@robot2).not_to receive(:wound)
-          @robot.attack(@robot2)
+          expect(@robot2).not_to receive(:wound!)
+          @robot.attack!(@robot2)
         end
       end
     end

@@ -8,7 +8,7 @@ class Weapon < Item
   end
 
   def hit(robot)
-    robot.wound(@damage)
+    robot.wound!(@damage)
   end
 
 end

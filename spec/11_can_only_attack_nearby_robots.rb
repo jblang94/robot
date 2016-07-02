@@ -8,7 +8,7 @@ describe Robot do
     @robot = Robot.new
   end
 
-  describe '#attack' do
+  describe '#attack!' do
     context "with enemy robot directly above" do
       before(:each) do
         @robot2 = Robot.new
@@ -16,8 +16,8 @@ describe Robot do
       end
 
       it "is able to successfully wound the enemy" do
-        expect(@robot2).to receive(:wound)
-        @robot.attack(@robot2)
+        expect(@robot2).to receive(:wound!)
+        @robot.attack!(@robot2)
       end
     end
 
@@ -29,8 +29,8 @@ describe Robot do
       end
 
       it "is unable to successfully wound the enemy" do
-        expect(@robot2).not_to receive(:wound)
-        @robot.attack(@robot2)
+        expect(@robot2).not_to receive(:wound!)
+        @robot.attack!(@robot2)
       end
     end
 
@@ -41,8 +41,8 @@ describe Robot do
       end
 
       it "is able to successfully wound the enemy" do
-        expect(@robot2).to receive(:wound)
-        @robot.attack(@robot2)
+        expect(@robot2).to receive(:wound!)
+        @robot.attack!(@robot2)
       end
     end
 
@@ -54,8 +54,8 @@ describe Robot do
       end
 
       it "is unable to successfully wound the enemy" do
-        expect(@robot2).not_to receive(:wound)
-        @robot.attack(@robot2)
+        expect(@robot2).not_to receive(:wound!)
+        @robot.attack!(@robot2)
       end
     end
   end
